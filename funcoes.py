@@ -25,6 +25,18 @@ def escalonamento_amplitude(sinal, escalar):
     return [s * escalar for s in sinal]
 
 
+def conv(x, h):
+    N = len(x)
+    M = len(h)
+    y = [0]*(N+M-1)
+    for n in range(len(y)):
+        for k in range (N):
+            if 0 <= n-k < M:
+                y[n] += x[k] * h[n-k]
+
+    return y
+
+
 n = [-3,-2,-1,0,1,2,3,4]
 x1 = impulso(n)
 x2 = rampa(n)
@@ -38,4 +50,5 @@ print(f"Atraso/Avanço: {atraso_avanco(x1, -2)}")
 print(f"Atraso/Avanço: {atraso_avanco(x1, 2)}")
 print(f"Reflexão temporal: {x4}")
 print(f"Escalonamento amplitude: {x5}")
+print(f"Convolução de rampa + degrau: {conv(x2,x3)}")
 
