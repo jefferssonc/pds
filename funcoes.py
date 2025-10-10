@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import sympy
-from sympy import symbols, solve, Eq, simplify
+from sympy import symbols, solve, Eq, lambdify
 import numpy as np
 
 #################### FUNÇÕES ###############################
@@ -51,42 +51,65 @@ def eq_diferenca(coeficientes, condicoes, indices):
     if tam==2:
         i1, i2 = indices
         yi1, yi2 = condicoes
+        a1, a2 = coeficientes
         #poli = gamma**2+yi1*gamma+yi2
-        delta = coeficientes[0]**2-4*coeficientes[1]
-        g1 = (-coeficientes[0] + sympy.sqrt(delta)) / 2
-        g2 = (-coeficientes[0] - sympy.sqrt(delta)) / 2
-        if delta!=0:
-            yn = C1 * g1**n +C2 *g2**n
+        delta = a1**2-4*a2
+        g1 = float((-a1 + sympy.sqrt(delta)) / 2)
+        g2 = float((-a1 - sympy.sqrt(delta)) / 2)
+        if delta>0:
+            yn = C1 * g1**n + C2 * g2**n
             eq1 = Eq(C1 * g1 ** i1 + C2 * g2 ** i1, yi1)
             eq2 = Eq(C1 * g1 ** i2 + C2 * g2 ** i2, yi2)
             sol = solve((eq1, eq2), (C1, C2))
             yn_eq = yn.subs(sol)
         elif delta==0:
+            #Gamas iguais, então tanto faz usar g1 ou g2
             yn = (C1+C2*n)*g1**n
             eq1 = Eq(C1 * g1**i1 + C2 * i1 * g1**i1, yi1)
             eq2 = Eq(C1 * g1 ** i2 + C2 * i2 * g1 ** i2, yi2)
             sol = solve((eq1, eq2), (C1, C2))
             yn_eq = yn.subs(sol)
+
+        gamas = [float(g1), float(g2)]
+        C_vals = [float(sol[C1]), float(sol[C2])]
     else:
         i1 = indices[0]
         yi1 = condicoes[0]
-        g = -coeficientes[0]
-        yn = C1*g**n
+        g = float(-coeficientes[0])
+        yn = C1 * g**n
         eq1=Eq(C1*g**i1, yi1)
         sol=solve(eq1,C1)
         yn_eq = yn.subs(C1,sol[0])
 
+        gamas = [float(g)]
+        C_vals = [float(sol[0])]
 
 
+    #Caso complexo, implementar depois
+
+    # Converter expressão simbólica para função numérica
+    y_func = lambdify(n, yn_eq, modules="numpy")
+    # Gera vetor de índices para plotar
+    n_vals = np.arange(-10, 11)
+    y_vals = y_func(n_vals)
+    # Verifica estabilidade: todas raízes dentro do círculo unitário
+    estabilidade = all(abs(g) < 1 for g in gamas)
+    estabilidade_str = "Estável" if estabilidade else "Instável"
+    # Plotagem
+    plt.stem(n_vals, y_vals)
+    plt.title("Resposta à Entrada Nula $y_0[n]$\nSistema " + estabilidade_str)
+    plt.xlabel("n")
+    plt.ylabel("y[n]")
+    plt.grid(True)
+    plt.show()
+    # Retorna resultados
+    return  (f"Gamas (raízes): {gamas}, "
+             f"Constantes (C): {C_vals}, "
+             f"Estabilidade: {estabilidade_str}, "
+             f"Expressão y[n]: {yn_eq}")
 
 
-    return yn_eq
-
-#def eq_entrada_nula(coeficientes, condicoes, indices):
-
-    gamma = symbols('gamma')
-    n = len(coeficientes)
-
+    #return yn_eq
 
 
 """n = [-3,-2,-1,0,1,2,3,4]
@@ -108,6 +131,7 @@ print(f"Convolução de impulso + degrau: {conv(x1,x3)}")"""
 
 
 print(eq_diferenca([-0.6,-0.16],[25,0],[-2,-1]))
+print(eq_diferenca([3,2],[2,1],[0,1]))
 print(eq_diferenca([-4,4],[1,4],[0,1]))
 print(eq_diferenca([-0.5], [2], [0]))
 print(eq_diferenca([-0.5], [2], [-1]))

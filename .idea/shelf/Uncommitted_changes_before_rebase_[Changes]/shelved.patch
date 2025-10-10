@@ -1,0 +1,154 @@
+Index: funcoes.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import matplotlib.pyplot as plt\r\nimport sympy\r\nfrom sympy import symbols, solve, Eq, simplify\r\nimport numpy as np\r\n\r\n#################### FUNÇÕES ###############################\r\n\r\ndef impulso(sinal):\r\n    return [1 if s == 0 else 0 for s in sinal]\r\n\r\ndef rampa(sinal):\r\n    return [s if s>=0 else 0 for s in sinal]\r\n\r\ndef degrau(sinal):\r\n    return [1 if s>=0 else 0 for s in sinal]\r\n\r\ndef atraso_avanco(sinal, nd):\r\n    if nd>0:\r\n        y = [0]*nd+sinal\r\n    else:\r\n        y = sinal[-nd:]+[0]*(-nd)\r\n    return y[:len(sinal)]\r\n\r\ndef reflexao_temporal(sinal):\r\n    return sinal[::-1]\r\n\r\ndef escalonamento_amplitude(sinal, escalar):\r\n    return [s * escalar for s in sinal]\r\n\r\n\r\ndef conv(x, h):\r\n    N = len(x)\r\n    M = len(h)\r\n    y = [0]*(N+M-1)\r\n    for n in range(len(y)):\r\n        for k in range (N):\r\n            if 0 <= n-k < M:\r\n                y[n] += x[k] * h[n-k]\r\n\r\n    return y\r\n\r\n\r\ndef eq_diferenca(coeficientes, condicoes, indices):\r\n    #gamma = symbols('gamma')\r\n    n = symbols('n', integer=True)\r\n    C1, C2 = symbols('C1 C2')\r\n\r\n\r\n    tam = len(coeficientes)\r\n\r\n    if tam==2:\r\n        i1, i2 = indices\r\n        yi1, yi2 = condicoes\r\n        #poli = gamma**2+yi1*gamma+yi2\r\n        delta = coeficientes[0]**2-4*coeficientes[1]\r\n        g1 = (-coeficientes[0] + sympy.sqrt(delta)) / 2\r\n        g2 = (-coeficientes[0] - sympy.sqrt(delta)) / 2\r\n        if delta!=0:\r\n            yn = C1 * g1**n +C2 *g2**n\r\n            eq1 = Eq(C1 * g1 ** i1 + C2 * g2 ** i1, yi1)\r\n            eq2 = Eq(C1 * g1 ** i2 + C2 * g2 ** i2, yi2)\r\n            sol = solve((eq1, eq2), (C1, C2))\r\n            yn_eq = yn.subs(sol)\r\n        elif delta==0:\r\n            yn = (C1+C2*n)*g1**n\r\n            eq1 = Eq(C1 * g1**i1 + C2 * i1 * g1**i1, yi1)\r\n            eq2 = Eq(C1 * g1 ** i2 + C2 * i2 * g1 ** i2, yi2)\r\n            sol = solve((eq1, eq2), (C1, C2))\r\n            yn_eq = yn.subs(sol)\r\n    else:\r\n        i1 = indices[0]\r\n        yi1 = condicoes[0]\r\n        g = -coeficientes[0]\r\n        yn = C1*g**n\r\n        eq1=Eq(C1*g**i1, yi1)\r\n        sol=solve(eq1,C1)\r\n        yn_eq = yn.subs(C1,sol[0])\r\n\r\n\r\n\r\n\r\n\r\n    return yn_eq\r\n\r\n#def eq_entrada_nula(coeficientes, condicoes, indices):\r\n\r\n    gamma = symbols('gamma')\r\n    n = len(coeficientes)\r\n\r\n\r\n\r\n\"\"\"n = [-3,-2,-1,0,1,2,3,4]\r\nx1 = impulso(n)\r\nx2 = rampa(n)\r\nx3 = degrau(n)\r\nx4 = reflexao_temporal(n)\r\nx5 = escalonamento_amplitude(n, 2)\r\nprint(f\"Impulso: {x1} \")\r\nprint(f\"Rampa: {x2} \")\r\nprint(f\"Degrau: {x3}\")\r\nprint(f\"Atraso/Avanço: {atraso_avanco(x1, -2)}\")\r\nprint(f\"Atraso/Avanço: {atraso_avanco(x1, 2)}\")\r\nprint(f\"Reflexão temporal: {x4}\")\r\nprint(f\"Escalonamento amplitude: {x5}\")\r\nprint(f\"Convolução de rampa + degrau: {conv(x2,x3)}\")\r\nprint(f\"Convolução de impulso + rampa: {conv(x1,x2)}\")\r\nprint(f\"Convolução de impulso + degrau: {conv(x1,x3)}\")\"\"\"\r\n\r\n\r\nprint(eq_diferenca([-0.6,-0.16],[25,0],[-2,-1]))\r\nprint(eq_diferenca([-4,4],[1,4],[0,1]))\r\nprint(eq_diferenca([-0.5], [2], [0]))\r\nprint(eq_diferenca([-0.5], [2], [-1]))\r\n\r\n\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/funcoes.py b/funcoes.py
+--- a/funcoes.py	(revision 3e3a8b209b95d5806d15c676a400b3b9deebb231)
++++ b/funcoes.py	(date 1760109825131)
+@@ -1,7 +1,4 @@
+ import matplotlib.pyplot as plt
+-import sympy
+-from sympy import symbols, solve, Eq, simplify
+-import numpy as np
+ 
+ #################### FUNÇÕES ###############################
+ 
+@@ -40,56 +37,7 @@
+     return y
+ 
+ 
+-def eq_diferenca(coeficientes, condicoes, indices):
+-    #gamma = symbols('gamma')
+-    n = symbols('n', integer=True)
+-    C1, C2 = symbols('C1 C2')
+-
+-
+-    tam = len(coeficientes)
+-
+-    if tam==2:
+-        i1, i2 = indices
+-        yi1, yi2 = condicoes
+-        #poli = gamma**2+yi1*gamma+yi2
+-        delta = coeficientes[0]**2-4*coeficientes[1]
+-        g1 = (-coeficientes[0] + sympy.sqrt(delta)) / 2
+-        g2 = (-coeficientes[0] - sympy.sqrt(delta)) / 2
+-        if delta!=0:
+-            yn = C1 * g1**n +C2 *g2**n
+-            eq1 = Eq(C1 * g1 ** i1 + C2 * g2 ** i1, yi1)
+-            eq2 = Eq(C1 * g1 ** i2 + C2 * g2 ** i2, yi2)
+-            sol = solve((eq1, eq2), (C1, C2))
+-            yn_eq = yn.subs(sol)
+-        elif delta==0:
+-            yn = (C1+C2*n)*g1**n
+-            eq1 = Eq(C1 * g1**i1 + C2 * i1 * g1**i1, yi1)
+-            eq2 = Eq(C1 * g1 ** i2 + C2 * i2 * g1 ** i2, yi2)
+-            sol = solve((eq1, eq2), (C1, C2))
+-            yn_eq = yn.subs(sol)
+-    else:
+-        i1 = indices[0]
+-        yi1 = condicoes[0]
+-        g = -coeficientes[0]
+-        yn = C1*g**n
+-        eq1=Eq(C1*g**i1, yi1)
+-        sol=solve(eq1,C1)
+-        yn_eq = yn.subs(C1,sol[0])
+-
+-
+-
+-
+-
+-    return yn_eq
+-
+-#def eq_entrada_nula(coeficientes, condicoes, indices):
+-
+-    gamma = symbols('gamma')
+-    n = len(coeficientes)
+-
+-
+-
+-"""n = [-3,-2,-1,0,1,2,3,4]
++n = [-3,-2,-1,0,1,2,3,4]
+ x1 = impulso(n)
+ x2 = rampa(n)
+ x3 = degrau(n)
+@@ -103,15 +51,4 @@
+ print(f"Reflexão temporal: {x4}")
+ print(f"Escalonamento amplitude: {x5}")
+ print(f"Convolução de rampa + degrau: {conv(x2,x3)}")
+-print(f"Convolução de impulso + rampa: {conv(x1,x2)}")
+-print(f"Convolução de impulso + degrau: {conv(x1,x3)}")"""
+-
+-
+-print(eq_diferenca([-0.6,-0.16],[25,0],[-2,-1]))
+-print(eq_diferenca([-4,4],[1,4],[0,1]))
+-print(eq_diferenca([-0.5], [2], [0]))
+-print(eq_diferenca([-0.5], [2], [-1]))
+-
+-
+-
+ 
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"e37a0ec6-f913-4322-b4ab-12d6ce42f41c\" name=\"Changes\" comment=\"\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/funcoes.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/funcoes.py\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 1\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"33VfFglstMdoKDDRnRkx77Qacfj\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,\r\n    &quot;Python.funcoes.executor&quot;: &quot;Run&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;main&quot;,\r\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\r\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\r\n  }\r\n}</component>\r\n  <component name=\"RunManager\">\r\n    <configuration name=\"funcoes\" type=\"PythonConfigurationType\" factoryName=\"Python\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"pds\" />\r\n      <option name=\"ENV_FILES\" value=\"\" />\r\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\r\n      <option name=\"PARENT_ENVS\" value=\"true\" />\r\n      <envs>\r\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\r\n      </envs>\r\n      <option name=\"SDK_HOME\" value=\"\" />\r\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$\" />\r\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\r\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\r\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\r\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\r\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/funcoes.py\" />\r\n      <option name=\"PARAMETERS\" value=\"\" />\r\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\r\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\r\n      <option name=\"MODULE_MODE\" value=\"false\" />\r\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\r\n      <option name=\"INPUT_FILE\" value=\"\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n    <recent_temporary>\r\n      <list>\r\n        <item itemvalue=\"Python.funcoes\" />\r\n      </list>\r\n    </recent_temporary>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-PY-252.26199.168\" />\r\n        <option value=\"bundled-python-sdk-b3d66beaba9a-c6efb3732140-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26199.168\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"e37a0ec6-f913-4322-b4ab-12d6ce42f41c\" name=\"Changes\" comment=\"\" />\r\n      <created>1759407057756</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1759407057756</updated>\r\n      <workItem from=\"1759407058787\" duration=\"5582000\" />\r\n    </task>\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"com.intellij.coverage.CoverageDataManagerImpl\">\r\n    <SUITE FILE_PATH=\"coverage/pds$funcoes.coverage\" NAME=\"funcoes Coverage Results\" MODIFIED=\"1759496453784\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"false\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 3e3a8b209b95d5806d15c676a400b3b9deebb231)
++++ b/.idea/workspace.xml	(date 1760109856223)
+@@ -23,6 +23,18 @@
+   <component name="Git.Settings">
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
++  <component name="GitHubPullRequestSearchHistory">{
++  &quot;lastFilter&quot;: {
++    &quot;state&quot;: &quot;OPEN&quot;,
++    &quot;assignee&quot;: &quot;jefferssonc&quot;
++  }
++}</component>
++  <component name="GithubPullRequestsUISettings">{
++  &quot;selectedUrlAndAccountId&quot;: {
++    &quot;url&quot;: &quot;https://github.com/jefferssonc/pds.git&quot;,
++    &quot;accountId&quot;: &quot;9a1941a7-4dd9-4eb6-add0-4ac409f7a00b&quot;
++  }
++}</component>
+   <component name="ProjectColorInfo">{
+   &quot;associatedIndex&quot;: 1
+ }</component>
+@@ -39,11 +51,13 @@
+     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
++    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
++    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+   }
+ }</component>
+@@ -80,8 +94,7 @@
+   <component name="SharedIndexes">
+     <attachedChunks>
+       <set>
+-        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-PY-252.26199.168" />
+-        <option value="bundled-python-sdk-b3d66beaba9a-c6efb3732140-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26199.168" />
++        <option value="bundled-python-sdk-b3ae9b5d7125-f0eec537fc84-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.23892.439" />
+       </set>
+     </attachedChunks>
+   </component>
+@@ -100,6 +113,6 @@
+     <option name="version" value="3" />
+   </component>
+   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+-    <SUITE FILE_PATH="coverage/pds$funcoes.coverage" NAME="funcoes Coverage Results" MODIFIED="1759496453784" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
++    <SUITE FILE_PATH="coverage/pds$funcoes.coverage" NAME="funcoes Coverage Results" MODIFIED="1759412588643" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+   </component>
+ </project>
+\ No newline at end of file
