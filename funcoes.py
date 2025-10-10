@@ -44,12 +44,13 @@ def eq_diferenca(coeficientes, condicoes, indices):
     #gamma = symbols('gamma')
     n = symbols('n', integer=True)
     C1, C2 = symbols('C1 C2')
-    i1, i2 = indices
-    yi1, yi2 = condicoes
+
 
     tam = len(coeficientes)
 
     if tam==2:
+        i1, i2 = indices
+        yi1, yi2 = condicoes
         #poli = gamma**2+yi1*gamma+yi2
         delta = coeficientes[0]**2-4*coeficientes[1]
         g1 = (-coeficientes[0] + sympy.sqrt(delta)) / 2
@@ -66,6 +67,14 @@ def eq_diferenca(coeficientes, condicoes, indices):
             eq2 = Eq(C1 * g1 ** i2 + C2 * i2 * g1 ** i2, yi2)
             sol = solve((eq1, eq2), (C1, C2))
             yn_eq = yn.subs(sol)
+    else:
+        i1 = indices[0]
+        yi1 = condicoes[0]
+        g = -coeficientes[0]
+        yn = C1*g**n
+        eq1=Eq(C1*g**i1, yi1)
+        sol=solve(eq1,C1)
+        yn_eq = yn.subs(C1,sol[0])
 
 
 
@@ -100,6 +109,9 @@ print(f"Convolução de impulso + degrau: {conv(x1,x3)}")"""
 
 print(eq_diferenca([-0.6,-0.16],[25,0],[-2,-1]))
 print(eq_diferenca([-4,4],[1,4],[0,1]))
+print(eq_diferenca([-0.5], [2], [0]))
+print(eq_diferenca([-0.5], [2], [-1]))
+
 
 
 
