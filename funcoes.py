@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import sympy
+from sympy import symbols, solve, Eq, simplify
+import numpy as np
 
 #################### FUNÇÕES ###############################
 
@@ -37,7 +40,41 @@ def conv(x, h):
     return y
 
 
-n = [-3,-2,-1,0,1,2,3,4]
+def eq_diferenca(coeficientes, condicoes, indices):
+    gamma = symbols('gamma')
+    n = symbols('n', integer=True)
+    C1, C2 = symbols('C1 C2')
+
+    i1, i2 = indices
+    yi1, yi2 = condicoes
+
+    tam = len(coeficientes)
+
+    if tam==2:
+        #poli = gamma**2+yi1*gamma+yi2
+        delta = coeficientes[0]**2-4*coeficientes[1]
+        if delta!=0:
+            g1 = (-coeficientes[0] + sympy.sqrt(delta))/2
+            g2 = (-coeficientes[0] - sympy.sqrt(delta)) / 2
+            yn = C1 * g1**n +C2 *g2**n
+            eq1 = Eq(C1 * g1 ** i1 + C2 * g2 ** i1, yi1)
+            eq2 = Eq(C1 * g1 ** i2 + C2 * g2 ** i2, yi2)
+            sol = solve((eq1, eq2), (C1, C2))
+            yn_eq = yn.subs(sol)
+
+
+
+
+    return yn_eq
+
+#def eq_entrada_nula(coeficientes, condicoes, indices):
+
+    gamma = symbols('gamma')
+    n = len(coeficientes)
+
+
+
+"""n = [-3,-2,-1,0,1,2,3,4]
 x1 = impulso(n)
 x2 = rampa(n)
 x3 = degrau(n)
@@ -51,4 +88,11 @@ print(f"Atraso/Avanço: {atraso_avanco(x1, 2)}")
 print(f"Reflexão temporal: {x4}")
 print(f"Escalonamento amplitude: {x5}")
 print(f"Convolução de rampa + degrau: {conv(x2,x3)}")
+print(f"Convolução de impulso + rampa: {conv(x1,x2)}")
+print(f"Convolução de impulso + degrau: {conv(x1,x3)}")"""
+
+
+print(eq_diferenca([-0.6,-0.16],[25,0],[-2,-1]))
+
+
 
