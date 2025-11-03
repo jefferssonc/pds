@@ -450,11 +450,122 @@ def resposta_estado_nulo(b, a, x, n_max=50):
     return y_zs
 
 
-#################### SEÇÃO 5: EXEMPLOS PRÁTICOS E COMPLETOS ####################
+# ============================================================
+# Função 1 — Amostragem: x(t) → x[n]
+# ============================================================
+def amostragem_sinal(x_func, T, t_max, fs_fft=1000, plotar=True):
+    """
+    x_func : função x(t)
+    T      : período de amostragem (s)
+    t_max  : tempo máximo para simulação
+    fs_fft : frequência de amostragem para discretização contínua
+    plotar : se True, gera gráficos
+
+    Retorna:
+        n  : vetor de índices inteiros
+        x_n: sinal discreto amostrado
+    """
+    # Sinal contínuo para visualização
+    t = np.linspace(-t_max, t_max, int(2 * fs_fft * t_max))
+    x_t = x_func(t)
+
+    # Amostragem
+    n = np.arange(-int(t_max / T), int(t_max / T) + 1)
+    t_n = n * T
+    x_n = x_func(t_n)
+
+    # Trem de impulsos teórico
+    delta_train = np.zeros_like(t)
+    for tn in t_n:
+        idx = np.argmin(np.abs(t - tn))
+        delta_train[idx] = 1
+    x_s_t = x_t * delta_train * (1 / T)
+
+    # FFT contínua
+    X_f = np.fft.fftshift(np.fft.fft(x_t))
+    freqs = np.fft.fftshift(np.fft.fftfreq(len(t), d=(t[1] - t[0])))
+
+    # FFT discreta
+    Xd = np.fft.fftshift(np.fft.fft(x_n, 1024))
+    freqd = np.fft.fftshift(np.fft.fftfreq(len(Xd), d=T))
+
+    if plotar:
+        plt.figure(figsize=(12, 10))
+
+        plt.subplot(2, 2, 1)
+        plt.plot(t, x_t, label='x(t)')
+        plt.stem(t_n, x_n, linefmt='r-', markerfmt='ro', basefmt=' ', label='Amostras')
+        plt.title('Sinal contínuo e amostrado')
+        plt.xlabel('t (s)')
+        plt.legend()
+        plt.grid(True)
+
+        plt.subplot(2, 2, 2)
+        plt.plot(freqs, np.abs(X_f) / max(np.abs(X_f)))
+        plt.title('Espectro |X(f)|')
+        plt.xlabel('Frequência (Hz)')
+        plt.grid(True)
+
+        plt.subplot(2, 2, 3)
+        plt.stem(n, x_n, basefmt=' ')
+        plt.title('Sinal discreto x[n]')
+        plt.xlabel('n')
+        plt.grid(True)
+
+        plt.subplot(2, 2, 4)
+        plt.plot(freqd, np.abs(Xd) / max(np.abs(Xd)))
+        plt.title('Espectro |X_d(f)| (mostra réplicas)')
+        plt.xlabel('Frequência (Hz)')
+        plt.grid(True)
+
+        plt.tight_layout()
+        plt.show()
+
+    return n, x_n
+
+
+# ============================================================
+# Função 2 — Reconstrução: x[n] → x(t)
+# ============================================================
+def reconstruir_sinal(x_n, T, t_max, plotar=True, x_func_original=None):
+    """
+    Reconstrói o sinal contínuo a partir das amostras x[n].
+
+    x_n : vetor de amostras x[n]
+    T   : período de amostragem (s)
+    t_max : tempo máximo de reconstrução (s)
+    plotar : se True, mostra gráfico comparando original e reconstruído
+    x_func_original : função x(t) original (opcional, para comparar)
+
+    Retorna:
+        t : vetor de tempo contínuo
+        x_t_recon : sinal reconstruído
+    """
+    n = np.arange(len(x_n)) - len(x_n) // 2
+    t = np.linspace(-t_max, t_max, 2000)
+    x_t_recon = np.zeros_like(t)
+
+    for i, val in enumerate(x_n):
+        x_t_recon += val * np.sinc((t - n[i] * T) / T)
+
+    if plotar:
+        plt.figure(figsize=(10, 5))
+        if x_func_original:
+            x_t_original = x_func_original(t)
+            plt.plot(t, x_t_original, 'b', label='x(t) original', linewidth=2)
+        plt.plot(t, x_t_recon, 'r--', label='x(t) reconstruído (a partir de x[n])')
+        plt.title('Comparação entre sinal original e reconstruído')
+        plt.xlabel('Tempo (s)')
+        plt.ylabel('Amplitude')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return t, x_t_recon
 
 
 if __name__ == "__main__":
-    print("=== EXEMPLO 1: SINAIS BÁSICOS ===")
+    """print("=== EXEMPLO 1: SINAIS BÁSICOS ===")
     n_test = list(range(-3, 5))
     delta = impulso(n_test)
     u = degrau(n_test)
@@ -589,4 +700,18 @@ if __name__ == "__main__":
     y_zs = resposta_estado_nulo(b_q3, a_q3, x_degrau, 30)
     print(f"y_zs[n] para degrau (primeiros 10): {[f'{v:.4f}' for v in y_zs[:10]]}")
 
-    print("\n TODOS OS EXEMPLOS EXECUTADOS! Verifique plots para visualização.")
+    print("\n TODOS OS EXEMPLOS EXECUTADOS! Verifique plots para visualização.")"""
+
+    # Sinal original
+    f0 = 10  # Hz
+    x_func = lambda t: np.cos(2 * np.pi * f0 * t)
+
+    # Parâmetros de amostragem
+    T = 0.03  # período de amostragem (fs ≈ 33 Hz)
+    t_max = 0.5
+
+    print("=== Etapa 1: Amostragem x(t) → x[n] ===")
+    n, x_n = amostragem_sinal(x_func, T, t_max)
+
+    print("=== Etapa 2: Reconstrução x[n] → x(t) ===")
+    t, x_t_rec = reconstruir_sinal(x_n, T, t_max, x_func_original=x_func)
