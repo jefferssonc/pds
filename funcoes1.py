@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sp
 from sympy import symbols, Eq, solve, lambdify, Heaviside, diff, Poly
+from scipy.signal import butter, lfilter, freqz
 
 # Símbolos globais do SymPy (evita redefinições e melhora legibilidade)
 n = symbols('n', integer=True)
@@ -564,6 +565,138 @@ def reconstruir_sinal(x_n, T, t_max, plotar=True, x_func_original=None):
     return t, x_t_recon
 
 
+def filtro_passa_baixa(sinal, fs, fc, ordem=4, plotar=True):
+    """
+    Aplica um filtro passa-baixa digital (Butterworth) a um sinal e exibe gráficos.
+
+    Parâmetros:
+    ------------
+    sinal : array-like
+        Sinal de entrada.
+    fs : float
+        Frequência de amostragem (Hz).
+    fc : float
+        Frequência de corte (Hz).
+    ordem : int, opcional
+        Ordem do filtro Butterworth (default=4).
+    plotar : bool, opcional
+        Se True, mostra gráficos da resposta em frequência e dos sinais.
+
+    Retorna:
+    --------
+    sinal_filtrado : np.ndarray
+        Sinal filtrado.
+    b, a : np.ndarray
+        Coeficientes do numerador e denominador da função de transferência.
+    """
+
+    # 1️⃣ Normaliza a frequência de corte (em relação à frequência de Nyquist)
+    Wn = fc / (fs / 2)
+
+    # 2️⃣ Projeto do filtro Butterworth
+    b, a = butter(ordem, Wn, btype='low', analog=False)
+
+    # 3️⃣ Aplica o filtro ao sinal
+    sinal_filtrado = lfilter(b, a, sinal)
+
+    # 4️⃣ Plotagem (opcional)
+    if plotar:
+        # Resposta em frequência do filtro
+        w, h = freqz(b, a, worN=1024)
+        plt.figure(figsize=(8, 4))
+        plt.plot((fs * 0.5 / np.pi) * w, 20 * np.log10(abs(h)), linewidth=2)
+        plt.title('Resposta em Frequência - Filtro Passa-Baixa Butterworth')
+        plt.xlabel('Frequência (Hz)')
+        plt.ylabel('Ganho (dB)')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+        # Comparação do sinal original e filtrado
+        t = np.arange(len(sinal)) / fs
+        plt.figure(figsize=(8, 4))
+        plt.plot(t, sinal, label='Sinal Original', alpha=0.6)
+        plt.plot(t, sinal_filtrado, label='Sinal Filtrado', color='red', linewidth=2)
+        plt.title('Sinal Original x Filtrado')
+        plt.xlabel('Tempo (s)')
+        plt.ylabel('Amplitude')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    return sinal_filtrado, b, a
+
+
+def filtro_passa_baixa_RC(sinal, fs, R, C, plotar=True):
+    """
+    Implementa um filtro passa-baixa digital baseado em circuito RC.
+
+    Parâmetros:
+    ------------
+    sinal : array-like
+        Sinal de entrada (vetor numpy).
+    fs : float
+        Frequência de amostragem (Hz).
+    R : float
+        Resistência (Ohms).
+    C : float
+        Capacitância (Farads).
+    plotar : bool, opcional
+        Se True, exibe gráficos do sinal e da resposta em frequência.
+
+    Retorna:
+    --------
+    sinal_filtrado : np.ndarray
+        Sinal após a filtragem.
+    alpha : float
+        Coeficiente do filtro digital (para referência).
+    """
+
+    # 1️⃣ Cálculo das constantes do filtro RC
+    T = 1 / fs  # período de amostragem
+    RC = R * C  # constante de tempo
+    alpha = T / (RC + T)  # coeficiente do filtro digital
+
+    # 2️⃣ Inicializa o vetor de saída
+    y = np.zeros_like(sinal)
+
+    # 3️⃣ Implementa a equação de recorrência do filtro
+    for n in range(1, len(sinal)):
+        y[n] = alpha * sinal[n] + (1 - alpha) * y[n - 1]
+
+    # 4️⃣ Plotagem automática (se habilitada)
+    if plotar:
+        # Tempo
+        t = np.arange(len(sinal)) / fs
+
+        # a) Sinal original x filtrado
+        plt.figure(figsize=(10, 4))
+        plt.plot(t, sinal, label='Sinal Original', alpha=0.6)
+        plt.plot(t, y, label='Sinal Filtrado (RC)', color='orange', linewidth=2)
+        plt.title('Filtro Passa-Baixa RC Digital')
+        plt.xlabel('Tempo (s)')
+        plt.ylabel('Amplitude')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+        # b) Resposta em frequência (estimada por FFT)
+        N = len(sinal)
+        f = np.fft.fftfreq(N, d=1 / fs)
+        H = np.fft.fft(y) / np.fft.fft(sinal)
+        plt.figure(figsize=(8, 4))
+        plt.plot(np.fft.fftshift(f), 20 * np.log10(np.fft.fftshift(np.abs(H))), color='blue')
+        plt.title('Resposta em Frequência - Filtro RC Digital')
+        plt.xlabel('Frequência (Hz)')
+        plt.ylabel('Ganho (dB)')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    return y, alpha
+
 if __name__ == "__main__":
     """print("=== EXEMPLO 1: SINAIS BÁSICOS ===")
     n_test = list(range(-3, 5))
@@ -702,7 +835,7 @@ if __name__ == "__main__":
 
     print("\n TODOS OS EXEMPLOS EXECUTADOS! Verifique plots para visualização.")"""
 
-    # Sinal original
+    """# Sinal original
     f0 = 10  # Hz
     x_func = lambda t: np.cos(2 * np.pi * f0 * t)
 
@@ -714,4 +847,36 @@ if __name__ == "__main__":
     n, x_n = amostragem_sinal(x_func, T, t_max)
 
     print("=== Etapa 2: Reconstrução x[n] → x(t) ===")
-    t, x_t_rec = reconstruir_sinal(x_n, T, t_max, x_func_original=x_func)
+    t, x_t_rec = reconstruir_sinal(x_n, T, t_max, x_func_original=x_func)"""
+
+    fs = 1000  # frequência de amostragem (Hz)
+    fc = 100  # frequência de corte (Hz)
+    ordem = 4  # ordem do filtro
+
+    # Cria um sinal de teste: mistura de 50 Hz (baixa) e 250 Hz (alta)
+    t = np.arange(0, 1, 1 / fs)
+    sinal = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 250 * t)
+
+    # Aplica o filtro
+    sinal_filtrado, b, a = filtro_passa_baixa(sinal, fs, fc, ordem, plotar=True)
+
+    # Mostra a função de transferência no terminal
+    print("\n=== Função de Transferência do Filtro ===")
+    print("Numerador (b):", np.round(b, 6))
+    print("Denominador (a):", np.round(a, 6))
+    print("\nFiltro aplicado com sucesso!")
+
+    fs = 1000  # frequência de amostragem (Hz)
+    R = 1000  # resistência (Ohms)
+    C = 1e-3  # capacitância (Farads)
+
+    # Cria sinal de teste: mistura de 50 Hz e 250 Hz
+    t = np.arange(0, 1, 1 / fs)
+    sinal = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 250 * t)
+
+    # Aplica o filtro RC
+    sinal_filtrado, alpha = filtro_passa_baixa_RC(sinal, fs, R, C, plotar=True)
+
+    print(f"\nFiltro RC aplicado com sucesso!")
+    print(f"Coeficiente alpha = {alpha:.5f}")
+    print(f"Constante de tempo RC = {R * C:.5f} s")
