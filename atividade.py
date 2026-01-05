@@ -109,7 +109,7 @@ plt.show()
 # Outras maneiras de remover o DC offset
 # ============================================================
 
-# --- Método 1: Filtro passa-altas simples ---
+#  Metodo 1: Filtro passa-alta simples ##
 alpha = 0.99
 y = np.zeros_like(xr)
 
@@ -138,7 +138,7 @@ plt.ylabel("|Y(f)|")
 plt.grid()
 plt.show()
 
-# --- Método 2: Subtração da média móvel ---
+# --- Metodo 2: Subtração da média móvel ---
 janela = 100
 media_movel = np.convolve(xr, np.ones(janela)/janela, mode='same')
 xr_filtro = xr - media_movel
